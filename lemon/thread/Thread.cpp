@@ -44,25 +44,18 @@ namespace CurrentThread {
 
 using namespace lemon;
 
-// XXX: why declear friend not useful ?
-void *ThreadLoop(void *arg) {
-	ThreadData *threadData = (ThreadData *)arg;
-
-	threadData->_tid = CurrentThread::tid();
+void *Thread::ThreadLoop(void *arg) {
+	Thread *thread = static_cast<Thread *>(arg);
 	
-	threadData->_func(threadData->_data);
+	thread->callThreadFun();
 	
-	return NULL;
+	return (void *)0;
 }
 
-Thread::Thread (ThreadFunc func, void *data)
+Thread::Thread (const ThreadFunc &threadFunc)
   : _started(false),
-  	_joined(false),
-  	_pthreadId(0) {
-  	_threadData = new ThreadData();
-	_threadData->_data = data;
-	_threadData->_tid = 0;
-	_threadData->_func = func;
+  	_pthreadId(0),
+  	_threadFunc(threadFunc) {
 
 }
 
@@ -70,21 +63,27 @@ Thread::~Thread() {
 	if (_started) {
 		join();
 	}
-	delete _threadData;
 }
 
-void Thread::start() {
- 	CHECK_BOOL(!_started);
-  	_started = true;	
-  	if (pthread_create(&_pthreadId, NULL, ThreadLoop, _threadData)) {
-		// XXX: how deal?
-	    _started = false;
-  	}
+bool Thread::start() {
+ 	CHECK_BOOL_VAL(!_started, false);
+  	
+	if (pthread_create(&_pthreadId, NULL, Thread::ThreadLoop, this)) {
+	    return _started;		
+  	} 
+	_started = true; 
+
+	return _started;
 }
 
-int32_t Thread::join() {
-	CHECK_BOOL_VAL(_started, LEMON_SUCCESS);
-	CHECK_BOOL_VAL(!_joined, LEMON_FAILURE);
-	_joined = true;
-  	return pthread_join(_pthreadId, NULL);
+void Thread::join() {
+	CHECK_BOOL(_started);
+	
+  	pthread_join(_pthreadId, NULL);
+	_started = false;
 }
+
+void Thread::callThreadFun() const {
+	_threadFunc();
+}
+

@@ -16,51 +16,45 @@
 
 #include <vector>
 #include <deque>
-#include "Thread.hh"
+#include <boost/function.hpp>
+#include <boost/shared_ptr.hpp>
+#include "LemonCommon.hh"
 #include "Mutex.hh"
 #include "Condition.hh"
 
 using namespace std;
 
 namespace lemon {
-// XXX:用函数对象替代函数指针
-// XXX:Thread使用前置声明，声明为指针，减少编译依赖
-typedef void (*TaskFunc)(void *data);
 
-struct Task {
-	TaskFunc _func;
-	void *_data;
-};
+class Thread;
 
+typedef boost::function<void ()> TaskFunc;
 
 class ThreadPool {
 public:
 	ThreadPool();
 	~ThreadPool();
 
-	void start(int32_t numThreads);
-	void addTask(TaskFunc func, void *data);
+	bool start(int numThreads = 1);
+	void addTask(const TaskFunc &taskFunc);
 	void stop();
 
-	bool _running;
-  	mutable Mutex _mutex;
-  	Condition _notEmpty;
-  	//Condition notFull_;
-  	//size_t _maxQueueSize;
- 	vector<Thread *> _threads;
-	deque<Task *> _taskQueue;
 private:
-#if 0
-	bool _running;
-  	mutable Mutex _mutex;
-  	Condition _notEmpty;
-  	//Condition notFull_;
-  	//size_t _maxQueueSize;
- 	vector<Thread *> _threads;
-	deque<Task *> _taskQueue;
-#endif  
-};
+	static void ThreadPoolLoop(void *arg); 
+	DISALLOW_COPY_AND_ASSIGN(ThreadPool);
 
+	bool isRunning() {
+		return _running;
+	}
+	void waitForTask();
+	void excuteTask();
+
+	bool _running;
+	Mutex _mutex;
+  	Condition _notEmpty;
+ 	vector<boost::shared_ptr<Thread> > _threads;
+	deque<TaskFunc> _taskQueue;
+};
 
 
 }

@@ -1,4 +1,6 @@
-include_directories (.. ../../base)
+include_directories (.. 
+../../base
+../../boost_1_61_0)
 link_directories (..)
 set (THREAD_TEST_SRC
 ThreadTest.cpp)

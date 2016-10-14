@@ -13,6 +13,8 @@
 
 #include <unistd.h>
 #include <iostream>
+#include <boost/bind.hpp>
+
 #include "LemonCommon.hh"
 #include "Thread.hh"
 #include "Condition.hh"
@@ -36,12 +38,17 @@ void ThreadLock(void *arg) {
 }
 
 
+
+
+
 void ThreadLockTest() {
 	int32_t num = 0;
+	int a = 14;
+	int b = 14;
 	cout<<"**********ThreadLockTest start**************"<<endl;
-	Thread thread1(ThreadLock, &num);
-	Thread thread2(ThreadLock, &num);
-	Thread thread3(ThreadLock, &num);
+	Thread thread1(boost::bind(ThreadLock,&num));
+	Thread thread2(boost::bind(ThreadLock,&num));
+	Thread thread3(boost::bind(ThreadLock,&num));
 
 	thread1.start();
 	thread2.start();
@@ -100,8 +107,8 @@ void ThreadConditionTest() {
 	data._cond = new Condition(data._mutex);
 	data._var = false;
 	
-	Thread thread1(ThreadCondition1, &data);
-	Thread thread2(ThreadCondition2, &data);	
+	Thread thread1(boost::bind(ThreadCondition1, &data));
+	Thread thread2(boost::bind(ThreadCondition2, &data));	
 	thread1.start();
 	thread2.start();
 
@@ -109,10 +116,16 @@ void ThreadConditionTest() {
 	thread2.join();
 }
 
+
+#include "ThreadPool.hh"
 int main(int agrc, char *argv[]) {
 	//ThreadLockTest();
-	ThreadConditionTest();
-	
+	//ThreadConditionTest();
+
+	ThreadPool threadPool;
+	threadPool.start(100);
+	//threadPool-
+
 	return 0;
 }
  

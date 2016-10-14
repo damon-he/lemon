@@ -21,17 +21,17 @@ namespace lemon {
 
 class Condition {
 public:
-	Condition (Mutex &mutex) : _mutex(mutex) {
+	explicit Condition(Mutex &mutex) 
+		: _mutex(mutex) {
 		pthread_cond_init(&_cond, NULL);
 	}
 	
-	~Condition () {
+	~Condition() {
 		pthread_cond_destroy(&_cond);
 	}
 	
-	void wait () {
-
-   		pthread_cond_wait(&_cond, (pthread_mutex_t *)_mutex.getMutexImpl());
+	void wait() {
+   		pthread_cond_wait(&_cond, const_cast<pthread_mutex_t *>(_mutex.getMutexImpl()));
   	}
 
 	void timeWait(int timeMsec) {
@@ -40,21 +40,21 @@ public:
 		gettimeofday(&now, NULL);
     	outTime.tv_sec = now.tv_sec + timeMsec/1000;
     	outTime.tv_nsec = (now.tv_usec + timeMsec%1000*1000)* 1000;
-    	pthread_cond_timedwait(&_cond, (pthread_mutex_t *)_mutex.getMutexImpl(), &outTime);
+    	pthread_cond_timedwait(&_cond, const_cast<pthread_mutex_t *>(_mutex.getMutexImpl()), &outTime);
 	}
 	
-	void notify (){
+	void notify() {
 	    pthread_cond_signal(&_cond);
 	}
 
-	void notifyAll () {
+	void notifyAll() {
 	    pthread_cond_broadcast(&_cond);
 	}	
 	
 private:
 	Mutex &_mutex;
 	pthread_cond_t _cond;
-
+	DISALLOW_COPY_AND_ASSIGN(Condition);
 };
 
 }

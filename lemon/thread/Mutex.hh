@@ -15,6 +15,7 @@
 #define LEMON_MUTEX_HH
 
 #include <pthread.h>
+#include "LemonCommon.hh"
 
 namespace lemon {
 
@@ -36,25 +37,29 @@ public:
 		pthread_mutex_unlock(&_mutex); 
 	}
 	
-	void* getMutexImpl () {
+	const pthread_mutex_t *getMutexImpl() const { //使用匿名对象/指针解决返回对象内成员handler的问题
     	return &_mutex;
   	}
 	
 private:
 	pthread_mutex_t _mutex;
+	DISALLOW_COPY_AND_ASSIGN(Mutex);
 };
 
 class MutexLock {
 public:
-	explicit MutexLock(Mutex &mutex) : _mutex(mutex) { 
+	explicit MutexLock(Mutex &mutex) 
+		: _mutex(mutex) { 
 		_mutex.lock(); 
 	}
+	
 	~MutexLock() { 
 		_mutex.unlock(); 
 	}
 	
 private:
 	Mutex &_mutex;
+	DISALLOW_COPY_AND_ASSIGN(MutexLock);
 };
 
 
