@@ -1,4 +1,6 @@
-include_directories (..)
+include_directories (
+..
+../../boost_1_61_0)
 link_directories (..)
 set (UDP_SOCKET_TEST_SRC
 UdpSocketTest.cpp)

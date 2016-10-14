@@ -1,6 +1,7 @@
 include_directories (
+./
 ../thread
-)
+../boost_1_61_0)
 #aux_source_directory(. BASE_SRC)
 
 set (BASE_SRC
